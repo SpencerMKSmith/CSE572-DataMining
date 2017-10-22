@@ -50,7 +50,7 @@ statisticsFileName = 'statisticsData.csv';
     % Create a new matrix with summary statistics for the data
     %
     
-    dataStatistics = zeros(18,10);
+    dataStatistics = zeros(18,11);
     
     for sensorIndex = 1:size(sensorDataForAction, 1)
         
@@ -73,15 +73,12 @@ statisticsFileName = 'statisticsData.csv';
         slopeValue = transpose(timeValues) \ transpose(trimmedSensorData);
         maxMinDiff = maxValue - minValue;
         
-        try
-            % dwtValue = dwt(trimmedSensorData(1, 4:size(trimmedSensorData,2)),'db1', 'mode','sym');
-        catch e
-        end
+        dwtValue = dwt(trimmedSensorData(1, 4:size(trimmedSensorData,2)),'db1', 'mode','sym');
         
         try
             dataStatistics(sensorIndex, :) = [fileId, isEating, sensorIndex, minValue, maxValue, avgValue, stdValue, rmsValue, slopeValue, maxMinDiff, dwtValue];
         catch e
-            %disp(e);
+            disp(e);
         end
     end
     
