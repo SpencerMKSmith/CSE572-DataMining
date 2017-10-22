@@ -50,19 +50,22 @@ statisticsFileName = 'statisticsData.csv';
     % Create a new matrix with summary statistics for the data
     %
     
-    dataStatistics = zeros(18,11);
+    dataStatistics = zeros(18,13);
     
     for sensorIndex = 1:size(sensorDataForAction, 1)
         
         sensorData = sensorDataForAction(sensorIndex, 6:end);
         trimmedSensorData = sensorData(sensorData ~= 0);
         
+        if size(trimmedSensorData, 2) == 0
+            continue;
+        end
         % Remove outliers
-        IQR = iqr(trimmedSensorData);
-        firstQuantile = prctile(trimmedSensorData, 25);
-        thirdQuantile = prctile(trimmedSensorData, 75);
-        trimmedSensorData = trimmedSensorData(trimmedSensorData < thirdQuantile + 1.5 * IQR);
-        trimmedSensorData = trimmedSensorData(trimmedSensorData > firstQuantile - 1.5 * IQR);
+        %IQR = iqr(trimmedSensorData);
+        %firstQuantile = prctile(trimmedSensorData, 25);
+        %thirdQuantile = prctile(trimmedSensorData, 75);
+        %trimmedSensorData = trimmedSensorData(trimmedSensorData < thirdQuantile + 1.5 * IQR);
+        %trimmedSensorData = trimmedSensorData(trimmedSensorData > firstQuantile - 1.5 * IQR);
         timeValues = (1:length(trimmedSensorData));
         
         minValue = min(trimmedSensorData);
@@ -72,11 +75,23 @@ statisticsFileName = 'statisticsData.csv';
         rmsValue = rms(trimmedSensorData);
         slopeValue = transpose(timeValues) \ transpose(trimmedSensorData);
         maxMinDiff = maxValue - minValue;
+        medianValue = median(trimmedSensorData);
         
-        dwtValue = dwt(trimmedSensorData(1, 4:size(trimmedSensorData,2)),'db1', 'mode','sym');
+        % Fourier transform
+        F = fft(trimmedSensorData);
+        pow = F.*conj(F);
+        average_pow = sum(pow)/length(pow);
+        
+        dwtValue = 0;
+        try
+            dwtVector = dwt(trimmedSensorData(1, 1:size(trimmedSensorData,2)),'db1', 'mode','sym');
+            dwtValue = min(dwtVector);
+        catch e
+            %disp(e);
+        end
         
         try
-            dataStatistics(sensorIndex, :) = [fileId, isEating, sensorIndex, minValue, maxValue, avgValue, stdValue, rmsValue, slopeValue, maxMinDiff, dwtValue];
+            dataStatistics(sensorIndex, :) = [fileId, isEating, sensorIndex, minValue, maxValue, avgValue, stdValue, rmsValue, slopeValue, maxMinDiff, dwtValue, medianValue, average_pow];
         catch e
             disp(e);
         end
