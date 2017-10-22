@@ -4,7 +4,8 @@ statisticsFileName = 'statisticsData.csv';
 
 %Write the headers to the output file
 dlmwrite(outputFileName, ('isEating, action, fileId, area, sensor'), '');
-dlmwrite(statisticsFileName, ('fileId, isEating, sensor, min, max, avg, std, rms, slope, maxMinDiff, dwt'), '');
+dlmwrite(statisticsFileName, ('fileId, isEating, sensor, min, max, avg, std, rms, slope, maxMinDiff'), '');
+
 
 % For each carry frame (start, end, area)x
 % Mark whether the frame is eating or noneating
@@ -50,10 +51,35 @@ for videoIndex = 1:length(summaryCSV)
         % Get the noneating data and write to file
         if previousEndTime ~= -1
             nonEatingImuData = getValuesBetweenTimes(imuData, previousEndTime, startCarryTime);
-            nonEatingEmgData = getValuesBetweenTimes(emgData, previousEndTime, startCarryTime);
-            transposeAndWriteToFile(outputFileName, nonEatingImuData, nonEatingEmgData, 0, annotationIndex, recordId, areaNumber);
+            nonEatingEmgData = getValuesBetweenTimes(emgData, previousEndTime, stopCarryTime);
+            transposeAndWriteToFile(outputFileName, eatingImuData, eatingEmgData, 0, annotationIndex, recordId, areaNumber);
         end
         previousEndTime = stopCarryTime;
     end
 end
+
+% After we finish everything, read in the stats and do some more
+% analysis
+statsFile = csvread(statisticsFileName, 1, 0);
+disp("something");
+
+eatingSummary = zeros(18, size(statsFile,2));
+nonEatingSummary = zeros(18, size(statsFile,2));
+
+for rowIndex = 1:size(statsFile,1)
+   row = statsFile(rowIndex, :);
+   isEating = row(1,1);
+   sensorNumber = row(1, 2);
+   
+   statistics = row(3:end);
+   for statsIndex = 1:size(statistics, 2)
+       if isEating == 1
+           eatingSummary(
+       else
+           
+       end
+   end
+   
+end
+
 
