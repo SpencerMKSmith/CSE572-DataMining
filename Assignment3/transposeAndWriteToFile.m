@@ -51,22 +51,24 @@ statisticsFileName = 'statisticsData.csv';
     %
     
     dataStatistics = zeros(18,13);
+    pcaMatrix = zeros(1, 6);
     
     for sensorIndex = 1:size(sensorDataForAction, 1)
         
         sensorData = sensorDataForAction(sensorIndex, 6:end);
         trimmedSensorData = sensorData(sensorData ~= 0);
         
+        % Remove outliers
+        IQR = iqr(trimmedSensorData);
+        firstQuantile = prctile(trimmedSensorData, 25);
+        thirdQuantile = prctile(trimmedSensorData, 75);
+        trimmedSensorData = trimmedSensorData(trimmedSensorData < thirdQuantile + 1.5 * IQR);
+        trimmedSensorData = trimmedSensorData(trimmedSensorData > firstQuantile - 1.5 * IQR);
+        timeValues = (1:length(trimmedSensorData));
+        
         if size(trimmedSensorData, 2) == 0
             continue;
         end
-        % Remove outliers
-        %IQR = iqr(trimmedSensorData);
-        %firstQuantile = prctile(trimmedSensorData, 25);
-        %thirdQuantile = prctile(trimmedSensorData, 75);
-        %trimmedSensorData = trimmedSensorData(trimmedSensorData < thirdQuantile + 1.5 * IQR);
-        %trimmedSensorData = trimmedSensorData(trimmedSensorData > firstQuantile - 1.5 * IQR);
-        timeValues = (1:length(trimmedSensorData));
         
         minValue = min(trimmedSensorData);
         maxValue = max(trimmedSensorData);
@@ -97,6 +99,14 @@ statisticsFileName = 'statisticsData.csv';
         end
     end
     
+    pcaMatrix(1, 1) = isEating;
+    pcaMatrix(1, 2) = dataStatistics(2, 10); % Min - Max of sensor 2
+    pcaMatrix(1, 3) = dataStatistics(8,11); % DWT of sensor 8
+    pcaMatrix(1, 4) = dataStatistics(10,9); % Slope of sensor 10
+    pcaMatrix(1, 5) = dataStatistics(18,13); % Fourier energy transform of sensor 18
+    pcaMatrix(1, 6) = dataStatistics(9,12); % Median of sensor 9
+    
+    dlmwrite('pcaMatrix.csv', pcaMatrix, 'delimiter', ',', '-append', 'precision', 13);
     dlmwrite(statisticsFileName, dataStatistics, 'delimiter', ',', '-append', 'precision', 13);
 
 end

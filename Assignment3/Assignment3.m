@@ -5,6 +5,7 @@ statisticsFileName = 'statisticsData.csv';
 %Write the headers to the output file
 dlmwrite(outputFileName, ('isEating, action, fileId, area, sensor'), '');
 dlmwrite(statisticsFileName, ('fileId, isEating, sensor, min, max, avg, std, rms, slope, maxMinDiff, dwt'), '');
+dlmwrite('pcaMatrix.csv', ('isEating, maxMin, dwt, slope, fourier, median'), '');
 
 % For each carry frame (start, end, area)x
 % Mark whether the frame is eating or noneating
