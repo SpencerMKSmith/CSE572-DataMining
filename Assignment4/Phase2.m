@@ -29,7 +29,11 @@ function [ ] = Phase2( allData, groupIds )
 
     % Train the NN
     % TODO: Use nn toolbox
-
+    nn = patternnet(20);
+    nn = configure(nn,transpose(p2TrainFeatureData), transpose(p2TrainClassifications));
+    nn.trainParam.showWindow=0;
+    nn = train(nn,transpose(p2TrainFeatureData), transpose(p2TrainClassifications));
+    
     % For each test group
     for fileIndex = 1:length(testGroups)
         testGroupId = testGroups(fileIndex, 1);
@@ -77,13 +81,13 @@ function [ ] = Phase2( allData, groupIds )
 
         % Run test data through NN predictor
         % TODO: This part
-        %{
 
         % Use the test data to predict values
-        [nnPredictedValues, scores] = predict(nn2, p2TestFeatures); % Needs to return the predictions and the probability scores
-
+        scores = transpose(sim(nn, transpose(p2TestFeatures)));
+        nnPredictedValues = round(scores);
+        
         % Analyze the performance of the predicted values
-        [ nnAccuracy, nnPrecision, nnRecall, nnF1, nnROC ] = AnalyzePredictor(p2TestClassifications, nnPredictedValues, scores(:, 2)); % Make sure to pass the probability that "1" is given
+        [ nnAccuracy, nnPrecision, nnRecall, nnF1, nnROC ] = AnalyzePredictor(p2TestClassifications, nnPredictedValues, scores); % Make sure to pass the probability that "1" is given
 
         % Add the values for the decision tree to the output matrix
         phase2Metrics(1, 12) = nnAccuracy;
@@ -91,7 +95,7 @@ function [ ] = Phase2( allData, groupIds )
         phase2Metrics(1, 14) = nnRecall;
         phase2Metrics(1, 15) = nnF1;
         phase2Metrics(1, 16) = nnROC;    
-        %}
+        
 
         % After performing analysis of the three different methods, write to the output file
         dlmwrite(phase2FileName, phase2Metrics, 'delimiter', ',', '-append', 'precision', 13);
