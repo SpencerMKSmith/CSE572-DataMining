@@ -78,15 +78,20 @@ function [  ] = Phase1( allData, groupIds )
         %
 
         % TODO: Create the neural network
-        %{
+        
         % Create and train a neural network using the NN toolbox
-        nn = % Some neural network created using the toolbox
+         %dlmwrite('testFeature', trainFeatureData, 'delimiter', ',', '-append', 'precision', 13);
+         %dlmwrite('testClassifications', trainClassifications, 'delimiter', ',', '-append', 'precision', 13);
 
-        % Use the test data to predict values
-        [nnPredictedValues, scores] = predict(nn, testFeatureData); % Needs to return the predictions and the probability scores
-
+        nn = patternnet(20);
+        nn = configure(nn,transpose(trainFeatureData), transpose(trainClassifications));
+        nn.trainParam.showWindow=0;
+        nn = train(nn,transpose(trainFeatureData), transpose(trainClassifications));
+        scores = transpose(sim(nn, transpose(testFeatureData)));
+        nnPredictedValues = round(scores);
+        
         % Analyze the performance of the predicted values
-        [ nnAccuracy, nnPrecision, nnRecall, nnF1, nnROC ] = AnalyzePredictor(testClassifications, nnPredictedValues, scores(:, 2)); % Make sure to pass the probability that "1" is given
+        [ nnAccuracy, nnPrecision, nnRecall, nnF1, nnROC ] = AnalyzePredictor(testClassifications, nnPredictedValues, scores); % Make sure to pass the probability that "1" is given
 
         % Add the values for the decision tree to the output matrix
         metricsForFile(1, 12) = nnAccuracy;
@@ -94,7 +99,6 @@ function [  ] = Phase1( allData, groupIds )
         metricsForFile(1, 14) = nnRecall;
         metricsForFile(1, 15) = nnF1;
         metricsForFile(1, 16) = nnROC;    
-        %}
 
         % After performing analysis of the three different methods, write to the output file
         dlmwrite(phase1FileName, metricsForFile, 'delimiter', ',', '-append', 'precision', 13);
