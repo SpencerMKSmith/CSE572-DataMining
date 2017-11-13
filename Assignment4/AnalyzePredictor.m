@@ -19,7 +19,7 @@ function [ accuracy, precision, recall, F1, ROC ] = AnalyzePredictor( trueClassi
     %       put a breakpoint in the disp(E) line to catch if an error happened.  This may disappear
     %       when we start using the group mappings as the sample size will be larger.
     try
-        [~, ~, ~, ROC] = perfcurve(predictionValues, probabilityScores, 1);       % This function will calculate the AUC of the ROC curve (area under the curve)
+        [~, ~, ~, ROC] = perfcurve(trueClassifications, probabilityScores, 1);       % This function will calculate the AUC of the ROC curve (area under the curve)
     catch E
         disp(E);
         ROC = 0;
