@@ -6,13 +6,13 @@ function [ ] = Phase2( allData, groupIds )
     dlmwrite(phase2FileName, ('groupId, dtAcc, dtPrec, dtRec, dtF1, dtROC, svmAcc, svmPrec, svmRec, svmF1, svmROC, nnAcc, nnPrec, nnRec, nnF1, nnROC'), '');
 
     % Choose 10 groups to use as sampling
-    trainingGroups = groupIds([1, 4, 8, 9, 12, 13, 17, 18, 20, 22, 23, 30], :); % Pretty much just random values, can be changed
+    trainingGroups = groupIds([1, 4, 5, 9, 12, 13, 17, 18, 20, 22, 32, 33], :); % Pretty much just random values, can be changed
+    
     % Get all of the training data from the above groups
-    % TODO: Be sure to update column index when new column is added
-    trainingGroupRows = ismember(allData(:, 1), trainingGroups);    % True/False values of what rows to choose
+    trainingGroupRows = ismember(allData(:, 8), trainingGroups);    % True/False values of what rows to choose
     p2TrainingData = allData(trainingGroupRows, :);                 % Use the true/false list to select the rows we want
-    p2TrainFeatureData = p2TrainingData(:, 3:end); % TODO: Be sure to update this when the new grou column is added
-    p2TrainClassifications = p2TrainingData(:, 2); % TODO: Be sure to update this when the new grou column is added
+    p2TrainFeatureData = p2TrainingData(:, 3:7);
+    p2TrainClassifications = p2TrainingData(:, 2);
 
     % Determine the test groups, simply the values that weren't selected above
     testGroups = groupIds(~ismember(groupIds, trainingGroups), :); 
@@ -20,17 +20,14 @@ function [ ] = Phase2( allData, groupIds )
     % First we will train each of the classifiers then we will run the test data from each group through them
 
     % Create the decision tree
-    % TODO: Play around with the parameters (may not be the same as above)
     decisionTree2 = fitctree(p2TrainFeatureData, p2TrainClassifications); % First parameter is the feature values, second are the classifications
 
     % Create the SVM
-    % TODO: Play around with the parameters
-    svm2 = fitcsvm(p2TrainFeatureData, p2TrainClassifications, 'Standardize',true, 'KernelScale','auto'); % TODO: Play around/remove the values as needed
+    svm2 = fitcsvm(p2TrainFeatureData, p2TrainClassifications, 'Standardize',true, 'KernelScale','auto');
 
     % Train the NN
-    % TODO: Use nn toolbox
     nn = patternnet(20);
-    nn = configure(nn,transpose(p2TrainFeatureData), transpose(p2TrainClassifications));
+    %nn = configure(nn,transpose(p2TrainFeatureData), transpose(p2TrainClassifications));
     nn.trainParam.showWindow=0;
     nn = train(nn,transpose(p2TrainFeatureData), transpose(p2TrainClassifications));
     
@@ -43,11 +40,10 @@ function [ ] = Phase2( allData, groupIds )
         phase2Metrics(1, 1) = testGroupId;
 
         % Get the test data for this group
-        % TODO: Be sure to update column index when new column is added
-        includeRowList = allData(:, 1) == testGroupId;    % True/False list if the row has the value from the current file
+        includeRowList = allData(:, 8) == testGroupId;    % True/False list if the row has the value from the current file
         p2TestData = allData(includeRowList, :);             % Use the true/false list to select the rows we want
-        p2TestFeatures = p2TestData(:, 3:end);      % TODO: Update if column index changes
-        p2TestClassifications = p2TestData(:, 2);   % TODO: Update if column index changes
+        p2TestFeatures = p2TestData(:, 3:7);
+        p2TestClassifications = p2TestData(:, 2);
 
         % Run the test data through each classifier and get metrics
 
@@ -80,7 +76,6 @@ function [ ] = Phase2( allData, groupIds )
         phase2Metrics(1, 11) = svmROC;
 
         % Run test data through NN predictor
-        % TODO: This part
 
         % Use the test data to predict values
         scores = transpose(sim(nn, transpose(p2TestFeatures)));
@@ -95,12 +90,9 @@ function [ ] = Phase2( allData, groupIds )
         phase2Metrics(1, 14) = nnRecall;
         phase2Metrics(1, 15) = nnF1;
         phase2Metrics(1, 16) = nnROC;    
-        
 
         % After performing analysis of the three different methods, write to the output file
         dlmwrite(phase2FileName, phase2Metrics, 'delimiter', ',', '-append', 'precision', 13);
-
     end
-
 end
 

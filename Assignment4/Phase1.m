@@ -1,5 +1,5 @@
 function [  ] = Phase1( allData, groupIds )
-%Phase1 Will execute all of the phase 2 operations and save output to file
+%Phase1 Will execute all of the phase 1 operations and save output to file
 
     % Set up the output file
     phase1FileName = 'phase1Output.csv';
@@ -7,10 +7,10 @@ function [  ] = Phase1( allData, groupIds )
 
     % For each file we will split into test and train
     for fileIndex = 1:length(groupIds)
-        currentFileId = groupIds(fileIndex,1);
+        currentGroupId = groupIds(fileIndex,1);
 
         % Get all data for the file
-        includeRowList = allData(:, 1) == currentFileId;    % True/False list if the row has the value from the current file
+        includeRowList = allData(:, 8) == currentGroupId;    % True/False list if the row has the value from the current file
         dataFromFile = allData(includeRowList, :);             % Use the true/false list to select the rows we want
 
         % Determine the number of train and test rows
@@ -18,17 +18,17 @@ function [  ] = Phase1( allData, groupIds )
 
         % Split 60% of records into train data
         trainData = dataFromFile(1:numberOfTrainRows,:);
-        trainFeatureData = trainData(:, 3:end); % Feature data values
+        trainFeatureData = trainData(:, 3:7); % Feature data values
         trainClassifications = trainData(:, 2); % Single column containing the classification values
 
         % Take the rest as test data
         testData = dataFromFile(numberOfTrainRows + 1:end, :);
-        testFeatureData = testData(:, 3:end); % TODO: Be sure to update this when the new grou column is added
-        testClassifications = testData(:, 2); % TODO: Be sure to update this when the new grou column is added
+        testFeatureData = testData(:, 3:7);
+        testClassifications = testData(:, 2);
 
         % This will hold all of the data for the file and will be appended to the output file
         metricsForFile = zeros(1, 16); 
-        metricsForFile(1,1) = currentFileId;
+        metricsForFile(1,1) = currentGroupId;
 
         %
         % Decision Tree
@@ -58,7 +58,7 @@ function [  ] = Phase1( allData, groupIds )
         %
 
         % Train an SVM
-        svm = fitcsvm(trainFeatureData, trainClassifications, 'Standardize',true, 'KernelScale','auto'); % TODO: Play around/remove the values as needed
+        svm = fitcsvm(trainFeatureData, trainClassifications, 'Standardize',true, 'KernelScale','auto');
 
         % Use the test data to predict values
         [svmPredictedValues, scores] = predict(svm, testFeatureData);
@@ -77,14 +77,7 @@ function [  ] = Phase1( allData, groupIds )
         % Neural Network
         %
 
-        % TODO: Create the neural network
-        
-        % Create and train a neural network using the NN toolbox
-         %dlmwrite('testFeature', trainFeatureData, 'delimiter', ',', '-append', 'precision', 13);
-         %dlmwrite('testClassifications', trainClassifications, 'delimiter', ',', '-append', 'precision', 13);
-
         nn = patternnet(20);
-        nn = configure(nn,transpose(trainFeatureData), transpose(trainClassifications));
         nn.trainParam.showWindow=0;
         nn = train(nn,transpose(trainFeatureData), transpose(trainClassifications));
         scores = transpose(sim(nn, transpose(testFeatureData)));

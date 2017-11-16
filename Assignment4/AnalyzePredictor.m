@@ -14,15 +14,6 @@ function [ accuracy, precision, recall, F1, ROC ] = AnalyzePredictor( trueClassi
     precision = analyzer.PositivePredictiveValue;           % PositivePredictiveValue is the precision value, as decribed above
     recall = analyzer.Sensitivity;                          % Sensitivity is the recall value, as described above
     F1 = (2 * recall * precision) / (recall + precision);   % From slides
-    
-    % NOTE: Try catch is temporary, try to fine tune SVM so that the error doesn't get thrown.
-    %       put a breakpoint in the disp(E) line to catch if an error happened.  This may disappear
-    %       when we start using the group mappings as the sample size will be larger.
-    try
-        [~, ~, ~, ROC] = perfcurve(trueClassifications, probabilityScores, 1);       % This function will calculate the AUC of the ROC curve (area under the curve)
-    catch E
-        disp(E);
-        ROC = 0;
-    end
+    [~, ~, ~, ROC] = perfcurve(trueClassifications, probabilityScores, 1);       % This function will calculate the AUC of the ROC curve (area under the curve)
 end
 
